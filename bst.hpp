@@ -5,7 +5,25 @@
 #include <vector>
 #include <string>
 #include <math.h>
+
 #include "bstException.hpp"
+
+/** @mainpage Presentazione del progetto
+ * 
+ * @author Giacomo Gobbo
+ *
+ * @date 25.jan.2023 - 6.feb.2023
+ *
+ * @section Cos'è un albero binario di ricerca
+ *
+ * This is the introduction.
+ *
+ * @section File presenti
+ *
+ * @subsection bst.hpp
+ *
+ * etc...
+ */
 
 /**
  * @class bst
@@ -15,31 +33,101 @@
  * e dai puntatori ai suoi sottoalberi sinistro e destro.
  *
  * Note: in questa classe i termini nodo e albero vengono interscambiati. Nonostante siano entità diverse
- * (un albero è composto da nodi), per come è stata definita la classe un puntatore a bst<T> indica
- * sia un nodo, perché bst<T> ha un valore key che è il valore del nodo, sia un albero, perché contiene
+ * (un albero è composto da nodi), per come è stata definita la classe un puntatore a bst<T, CMP> indica
+ * sia un nodo, perché bst<T, CMP> ha un valore key che è il valore del nodo, sia un albero, perché contiene
  * i puntatori ai nodi (o appunto alberi) figli (si possono pensare come agli archi di un grafo).
  *
- * @author Giacomo Gobbo
- *
- * @date 25.jan.2023 - 6.feb.2023
- * 
- * @tparam T è il tipo di dato salvato nell'albero binario di ricerca
- *
+ * @tparam key è il valore del nodo
+ * @tparam cmp è la relazione d'ordine da utilizzare
+ * @param parent è il genitore del nodo
+ * @param left è il figlio sinistro del nodo
+ * @param right è il figlio destro del nodo
+ * @param empty indica la preseza di un valore nel nodo (serve a classificare un nodo vuoto)
  */
-template <typename T>
+template <typename T, typename CMP = std::greater<T>>
 class bst
 {
 private:
-    T key;                //*< valore del nodo */
-    class bst<T> *parent; // puntatore al nodo genitore
-    class bst<T> *left;   // puntatore al nodo figlio sinistro
-    class bst<T> *right;  // puntatore al nodo figlio destro
-    bool empty;           // presenza di un valore nel nodo (per classificare il nodo come vuoto)
+    T key;                     // valore del nodo
+    class bst<T, CMP> *parent; // puntatore al nodo genitore
+    class bst<T, CMP> *left;   // puntatore al nodo figlio sinistro
+    class bst<T, CMP> *right;  // puntatore al nodo figlio destro
+    bool empty;                // presenza di un valore nel nodo (per classificare il nodo come vuoto)
+    CMP cmp;                   // comparatore
+
+    /**
+     * @brief Eliminazione di un nodo dall'albero mediante puntatore al nodo da eliminare
+     * Sia N il nodo da eliminare, ci sono tre casi possibili:
+     * 1 - N è un nodo foglia, il puntatore a N del genitore viene sostituito con nullptr (N.parent non ha più il figlio N)
+     *     e quindi N viene rimosso dall'albero.
+     * 2 - N ho solo un figlio, il figlio diventa figlio sinistro del genitore di N (se N è il figlio sinistro del suo genitore)
+     *     o figlio destro del genitore di N (se N è il figlio destro del suo genitore) e quindi N viene rimosso dall'albero.
+     * 3 - N ha entrambi i figli, sia S il successore di N, S prende la posizione di N nell'albero.
+     *     Se S è il figlio destro (diretto) di N, allora S sostituisce N e il puntatore al figlio sinistro di S diventa uguale al
+     *     puntatore al figlio sinistro di N.
+     *     Se S non è il figlio destro immediato di N, allora S viene sostituito dal figlio destro si S e S prende la posizione di N
+     *
+     * @param keyNode Nodo da eliminare
+     */
+    void deleteKey(bst<T, CMP> *keyNode);
+
+    /**
+     * @brief Sostituzione di un nodo
+     *
+     * @param nodeA nodo che deve essere sostituito
+     * @param nodeB nodo che sostituisce il nodeA
+     */
+    void nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB);
+
+    /**
+     * @brief Metodo per rappresentare un albero sotto forma di matrice
+     * Si calcola la posizione del nodo radice all'interno della matrice e poi si richiama il metodo
+     * sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
+     *
+     * @param matrix riferimento a matrice in cui fornire il risultato
+     * @param level livello dell'albero (da 0 fino all'altezza dell'albero)
+     * @param offset offset da sinistra per posizionare il nodo nella matrice
+     * @param width larghezza (in colonne) dell'albero nella matrice
+     */
+    void fillMatrix(std::vector<std::vector<std::string>> &matrix, uint level, uint offset, uint width)
+    {
+        if (isEmpty())
+        {
+            return;
+        }
+        matrix[level][(offset + width) / 2] = to_string_adl(key);              // Inserisco il nodo radice
+        left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
+        right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
+    }
+
+    /**
+     * @brief Metodo per stampare una matrice
+     *
+     * @param matrix è la matrice da stampare a video
+     */
+    void printMatrix(std::vector<std::vector<std::string>> matrix)
+    {
+        if (isEmpty())
+        {
+            std::cout << "Albero vuoto" << std::endl; // Se l'albero è vuoto non ha senso stampare una matrice vuota
+        }
+        else
+        {
+            for (uint i{0}; i < matrix.size(); ++i)
+            {
+                for (uint j{0}; j < matrix[i].size(); ++j)
+                {
+                    std::cout << matrix[i][j] << " ";
+                }
+                std::cout << std::endl; // Fine della riga i
+            }
+        }
+    }
 
 public:
     bst() : parent{nullptr}, left{nullptr}, right{nullptr}, empty{true} {}
     bst(T inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
-    bst(T array[], uint lenght) : bst<T>()
+    bst(T array[], uint lenght) : bst<T, CMP>()
     {
         for (u_int i{0}; i < lenght; ++i)
         {
@@ -56,9 +144,7 @@ public:
     {
         if (isEmpty())
         {
-            std::cout << "FATAL ERROR!" << std::endl;
-            // lancio eccezione al posto di exit
-            exit(0);
+            throw NonExistingValueException();
         }
         return key;
     }
@@ -68,7 +154,7 @@ public:
      *
      * @return puntatore al sottoalbero sinistro
      */
-    inline const bst<T> *parentTree() const
+    inline const bst<T, CMP> *parentTree() const
     {
         return parent;
     }
@@ -78,7 +164,7 @@ public:
      *
      * @return puntatore al sottoalbero sinistro
      */
-    inline const bst<T> *leftTree() const
+    inline const bst<T, CMP> *leftTree() const
     {
         return left;
     }
@@ -88,7 +174,7 @@ public:
      *
      * @return puntatore al sottoalbero destro
      */
-    inline const bst<T> *rightTree() const
+    inline const bst<T, CMP> *rightTree() const
     {
         return right;
     }
@@ -114,7 +200,7 @@ public:
      *
      * @return puntatore al nodo con valore minimo
      */
-    bst<T> *min()
+    bst<T, CMP> *min()
     {
         if (left == nullptr) // Se siamo alla fine del ramo sinistro (dove ci sono i numeri minori per definizione di bst)
         {
@@ -131,7 +217,7 @@ public:
      *
      * @return puntatore al nodo con valore massimo
      */
-    bst<T> *max()
+    bst<T, CMP> *max()
     {
         if (right == nullptr) // Se siamo alla fine del ramo destro (dove ci sono i numeri maggiori per definizione di bst)
         {
@@ -148,7 +234,7 @@ public:
      *
      * @return puntatore al nuovo albero
      */
-    bst<T> *insertValue(const T value)
+    bst<T, CMP> *insertValue(const T value)
     {
         if (isEmpty())
         {
@@ -160,21 +246,21 @@ public:
             }
             else // Se l'albero è vuoto e non punta a nulla
             {
-                return new bst<T>(value); // Restituisce un albero creato con il value come radice
+                return new bst<T, CMP>(value); // Restituisce un albero creato con il value come radice
             }
         }
         else
         {
-            if (value < key) // Se il valore da inserire è minore della chiave del nodo
-            {
-                left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
-                left->parent = this;
-                return this;
-            }
-            else // Se il valore da inserire è maggiore della chiave del nodo
+            if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
             {
                 right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
                 right->parent = this;
+                return this;
+            }
+            else // Se il valore da inserire è minore (o uguale) della chiave del nodo
+            {
+                left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
+                left->parent = this;
                 return this;
             }
         }
@@ -229,14 +315,14 @@ public:
      *
      * @return puntatore al nodo successore
      */
-    bst<T> *successor()
+    bst<T, CMP> *successor()
     {
         if (right != nullptr)
         {
             return right->min();
         }
-        bst<T> *y = parent;
-        bst<T> *x = this;
+        bst<T, CMP> *y = parent;
+        bst<T, CMP> *x = this;
         while ((y != nullptr) && (x = y->right))
         {
             x = y;
@@ -251,14 +337,14 @@ public:
      *
      * @return puntatore al nodo successore
      */
-    bst<T> *predecessor()
+    bst<T, CMP> *predecessor()
     {
         if (left != nullptr)
         {
             return left->max();
         }
-        bst<T> *y = parent;
-        bst<T> *x = this;
+        bst<T, CMP> *y = parent;
+        bst<T, CMP> *x = this;
         while (y != nullptr &&x = y->left)
         {
             x = y;
@@ -319,7 +405,7 @@ public:
      *
      * @return puntatore al nodo che presenta la chiave desiderata
      */
-    bst<T> *binarySearch(const T value)
+    bst<T, CMP> *binarySearch(const T value)
     {
         if (isEmpty()) // Se l'albero/sottoalbero è vuoto
         {
@@ -333,13 +419,13 @@ public:
             }
             else
             {
-                if (value < key) // In un BST i valori minori di un nodo si trovano a sinistra
-                {
-                    return (left->binarySearch(value));
-                }
-                else // In un BST i valori maggiori di un nodo si trovano a destra
+                if (cmp(value, key)) // In un BST i valori maggiori di un nodo si trovano a sinistra
                 {
                     return (right->binarySearch(value));
+                }
+                else // In un BST i valori minori (o uguali) di un nodo si trovano a destra
+                {
+                    return (left->binarySearch(value));
                 }
             }
         }
@@ -381,30 +467,6 @@ public:
             parent->right = nullptr; // Elimino il puntatore al figlio destro del genitore
         }
     }
-
-    /**
-     * @brief Eliminazione di un nodo dall'albero mediante puntatore al nodo da eliminare
-     * Sia N il nodo da eliminare, ci sono tre casi possibili:
-     * 1 - N è un nodo foglia, il puntatore a N del genitore viene sostituito con nullptr (N.parent non ha più il figlio N)
-     *     e quindi N viene rimosso dall'albero.
-     * 2 - N ho solo un figlio, il figlio diventa figlio sinistro del genitore di N (se N è il figlio sinistro del suo genitore)
-     *     o figlio destro del genitore di N (se N è il figlio destro del suo genitore) e quindi N viene rimosso dall'albero.
-     * 3 - N ha entrambi i figli, sia S il successore di N, S prende la posizione di N nell'albero.
-     *     Se S è il figlio destro (diretto) di N, allora S sostituisce N e il puntatore al figlio sinistro di S diventa uguale al
-     *     puntatore al figlio sinistro di N.
-     *     Se S non è il figlio destro immediato di N, allora S viene sostituito dal figlio destro si S e S prende la posizione di N
-     *
-     * @param keyNode Nodo da eliminare
-     */
-    void deleteKey(bst<T> *keyNode);
-
-    /**
-     * @brief Sostituzione di un nodo
-     *
-     * @param nodeA nodo che deve essere sostituito
-     * @param nodeB nodo che sostituisce il nodeA
-     */
-    void nodeChange(bst<T> *nodeA, bst<T> *nodeB);
 
     /**
      * @brief Eliminazione di un nodo dall'albero mediante chiave del nodo da eliminare
@@ -452,59 +514,14 @@ public:
         printMatrix(matrix);
     }
 
-    /**
-     * @brief Metodo per rappresentare un albero sotto forma di matrice
-     * Si calcola la posizione del nodo radice all'interno della matrice e poi si richiama il metodo
-     * sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
-     *
-     * @param matrix riferimento a matrice in cui fornire il risultato
-     * @param level livello dell'albero (da 0 fino all'altezza dell'albero)
-     * @param offset offset da sinistra per posizionare il nodo nella matrice
-     * @param width larghezza (in colonne) dell'albero nella matrice
-     */
-    void fillMatrix(std::vector<std::vector<std::string>> &matrix, uint level, uint offset, uint width)
-    {
-        if (isEmpty())
-        {
-            return;
-        }
-        matrix[level][(offset + width) / 2] = std::to_string(key);             // Inserisco il nodo radice
-        left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
-        right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
-    }
-
-    /**
-     * @brief Metodo per stampare una matrice
-     *
-     * @param matrix è la matrice da stampare a video
-     */
-    void printMatrix(std::vector<std::vector<std::string>> matrix)
-    {
-        if (isEmpty())
-        {
-            std::cout << "Albero vuoto" << std::endl; // Se l'albero è vuoto non ha senso stampare una matrice vuota
-        }
-        else
-        {
-            for (uint i{0}; i < matrix.size(); ++i)
-            {
-                for (uint j{0}; j < matrix[i].size(); ++j)
-                {
-                    std::cout << matrix[i][j] << " ";
-                }
-                std::cout << std::endl; // Fine della riga i
-            }
-        }
-    }
-
     ~bst()
     {
         // ---
     }
 };
 
-template <typename T>
-void bst<T>::deleteKey(bst<T> *keyNode)
+template <typename T, typename CMP>
+void bst<T, CMP>::deleteKey(bst<T, CMP> *keyNode)
 {
     if (keyNode->left == nullptr) // Se non ha un figlio sinistro
     {
@@ -516,28 +533,27 @@ void bst<T>::deleteKey(bst<T> *keyNode)
     }
     else // Se ha entrambi i figli
     {
-        bst<T> *S = keyNode->successor();
+        bst<T, CMP> *S = keyNode->successor();
         if (S->parent != keyNode) // Se il successore non è il figlio del nodo da eliminare
         {
             nodeChange(S, S->right);   // Il figlio destro sostituisce il successore
             S->right = keyNode->right; // Il nuovo figlio del successore diventa il figlio destro del nodo da eliminare
             S->right->parent = S;      // Aggiorno il puntatore al genitore per il nuovo figlio
         }
-        // Unisco il sottoalbero sinistro del nodo eliminato al successore
-        nodeChange(keyNode, S);
+        nodeChange(keyNode, S); // Unisco il sottoalbero sinistro del nodo eliminato al successore
         S->left = keyNode->left;
         S->left->parent = S;
     }
 }
 
-template <typename T>
-void bst<T>::nodeChange(bst<T> *nodeA, bst<T> *nodeB)
+template <typename T, typename CMP>
+void bst<T, CMP>::nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB)
 {
     if (nodeA->parent == nullptr) // Se nodeA è la root
     {
         nodeA = nodeB; // nodeB diventa la nuova root
     }
-    else if (nodeA->key == nodeA->parent->left->key) // Se nodeA è il figlio sinistro
+    else if (nodeA == nodeA->parent->left) // Se nodeA è il figlio sinistro
     {
         nodeA->parent->left = nodeB; // nodeB diventa il nuovo figlio sinistro del genitore di nodeA
     }

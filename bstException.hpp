@@ -5,19 +5,36 @@
 #include <string>
 
 /**
+ * @brief Funzione per ottenere la rappresentazione in formato stringa
+ * Viene invocato il metodo to_string() se std::to_string() non è definito per il tipo T
+ *
+ * @tparam T è il tipo dell'oggetto di cui ottenere la stringa
+ * @param t è l'oggetto di cui ottenere la stringa
+ * @return è la stringa ottenuta
+ */
+template <typename T>
+auto to_string_adl(const T &t)
+{
+    using std::to_string;
+    return to_string(t);
+}
+
+/**
  * @brief Classe per la gestione delle eccezioni provocate da chiavi cercate inesistenti
  * 
  * @param value è il valore della chiave cercata che non è presente nell'albero
+ * @param valueGiven indica se è stato fornito il valore cercato che ha prodotto l'eccezione
 */
 class NonExistingValueException : public std::exception
 {
 private:
-    const unsigned int value;
-    const bool valueGiven;
+    std::string value;
+    bool valueGiven;
 
 public:
     NonExistingValueException() : value{NULL}, valueGiven{false} {} // Costruttore vuoto usato quando non viene fornita la chiave
-    NonExistingValueException(const unsigned int inputValue) : value(inputValue), valueGiven{true} {}
+    template <typename T>
+    NonExistingValueException(const T inputValue) : value(to_string_adl(inputValue)), valueGiven{true} {}
 
     /**
      * @brief Resituisce informazioni sull'errore
@@ -41,7 +58,7 @@ public:
             return "Uknown illegal value";
         }
         // Se è stato fornito lo si restituisce dentro la stringa
-        return ("The value that throw the exception is " + std::to_string(value));
+        return ("The value that throw the exception is " + value);
     }
 };
 
