@@ -1,18 +1,27 @@
 #include "bst.hpp"
-#include "binaryTree.hpp"
 #include "bstException.hpp" // include superfluo
+#include "City.hpp"
 
-void testBinaryTree();
-void testBST();
+void testBST_1();
+void testBST_2();
+void testBST_City();
 
+/**
+ * @brief Programma di prova per testare la classe bst
+ * Sono definite le seguenti funzioni di prova:
+ * 1 - testBST_1() per creare un albero binario di naturali e visitarlo in modo simmetrico, anticipato e posticipato
+ * 2 - testBST_2() per creare un albero binario di interi e visualizzarlo graficamente
+ * 3 - testBST_City() per creare un albero binario di città
+ */
 int main()
 {
-    // testBinaryTree();
+    // testBST_1();
+    // testBST_2();
     try
     {
-        testBST();
+        testBST_2();
     }
-    catch(const NonExistingValueException& e)
+    catch (const NonExistingValueException &e) // Gestione dell'eccezione
     {
         std::cerr << "e.what() :  " << e.what() << std::endl;
         std::cerr << "e.getInfo() :  " << e.getInfo() << std::endl;
@@ -21,57 +30,61 @@ int main()
     return 0;
 }
 
-void testBinaryTree()
+void testBST_1()
 {
-    binaryTree<int> t4(2), t5(1), t6(4), t7(9);       // livello 3
-    binaryTree<int> t2(7, &t4, &t5), t3(3, &t6, &t7); // livello 2
-    binaryTree<int> t1(5, &t2, &t3);                  // livello 1
+    uint intArray[] = {8, 3, 2, 5, 6, 12, 15, 13, 18, 16};
 
-    std::cout << "Inorder: " << std::endl;
-    t1.inorder();
-    std::cout << "\nPreorder: " << std::endl;
-    t1.preorder();
-    std::cout << "\nPostorder: " << std::endl;
-    t1.postorder();
-    std::cout << "\nÈ completo? " << (t1.isComplete() ? "Sì" : "No") << std::endl;
-    std::cout << "Ci sono " << t1.leavesCount() << " foglie e " << t1.nodesCount() << " nodi" << std::endl;
-    std::cout << "La key 3 " << (t1.search(3) ? " è " : " non è ") << " presente" << std::endl;
-    std::cout << "La key 8 " << (t1.search(8) ? " è " : " non è ") << " presente" << std::endl;
+    bst<uint> binSearchTree;
 
-    t3.deleteTree();
-    std::cout << "Inorder: " << std::endl;
-    t1.inorder();
-    std::cout << std::endl;
-}
-
-void testBST()
-{
-    int intArray[] = {11, 9, 14, 5, 10, 12, 15};
-/*
-    bst<int> binSearchTree;
     for (u_int i{0}; i < 7; ++i)
     {
         binSearchTree.insertValue(intArray[i]);
     }
     std::cout << "Inorder: " << std::endl;
-    binSearchTree.preorder();
+    binSearchTree.inorder();
     std::cout << "\nPreorder: " << std::endl;
     binSearchTree.preorder();
     std::cout << "\nPostorder: " << std::endl;
     binSearchTree.postorder();
     std::cout << "\n";
     std::cout << std::endl;
-*/
-    bst<int> bst(intArray, 7);
+}
+
+void testBST_2()
+{
+    int intArray[] = {8, 3, 8, 2, 5, 6, 12, 15, 13, 18, 16, -2, -1, -10};
+
+    bst<int> bst(intArray, sizeof(intArray) / sizeof(intArray[0]));
+
+    std::cout << "min() = " << bst.min()->getKey() << std::endl;
+    std::cout << "max() = " << bst.max()->getKey() << std::endl;
+
+    bst.printTree(); 
+
+    bst.deleteKey(15);
+
+    std::cout << std::endl;
 
     std::cout << "min() = " << bst.min()->getKey() << std::endl;
     std::cout << "max() = " << bst.max()->getKey() << std::endl;
 
     bst.printTree();
+}
 
-    bst.deleteKey(14);
+void testBST_City()
+{
+    City cities[] = {City("Noventa di Piave", 6984),
+                     City("Tokyo", 13960000),
+                     City("New York", 8468000),
+                     City("Roma", 2873000),
+                     City("Londra", 8799800),
+                     City("Hong Kong", 7413000),
+                     City("Parigi", 2229095),
+                     City("Singapore", 5454000),
+                     City("Madrid", 3223000),
+                     City("Dubai", 3331000)};
 
-    std::cout << std::endl;
+    bst<City> bst(cities, sizeof(cities) / sizeof(cities[0]));
 
     std::cout << "min() = " << bst.min()->getKey() << std::endl;
     std::cout << "max() = " << bst.max()->getKey() << std::endl;
