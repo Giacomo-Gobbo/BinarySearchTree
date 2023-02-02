@@ -76,9 +76,9 @@ std::ostream &operator<<(std::ostream &os, const City &city)
  * @param city è la città di cui si vuole ricavare la stringa
  * @return std::string 
  */
-std::string to_string(const City &city)
+inline std::string to_string(const City &city)
 {
     return city.getName();
-} 
+}
 
 #endif

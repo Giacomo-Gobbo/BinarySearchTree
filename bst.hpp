@@ -8,23 +8,6 @@
 
 #include "bstException.hpp"
 
-/** @mainpage Presentazione del progetto
- * 
- * @author Giacomo Gobbo
- *
- * @date 25.jan.2023 - 6.feb.2023
- *
- * @section Cos'è un albero binario di ricerca
- *
- * This is the introduction.
- *
- * @section File presenti
- *
- * @subsection bst.hpp
- *
- * etc...
- */
-
 /**
  * @class bst
  *
@@ -38,7 +21,8 @@
  * i puntatori ai nodi (o appunto alberi) figli (si possono pensare come agli archi di un grafo).
  *
  * @tparam key è il valore del nodo
- * @tparam cmp è la relazione d'ordine da utilizzare
+ * @tparam cmp è la relazione d'ordine da utilizzare. È necessario utilizzare un comparatore che esprima la relazione
+ * d'ordine di "maggiore" se si vuole ottenere un albero binario ordinato correttamente
  * @param parent è il genitore del nodo
  * @param left è il figlio sinistro del nodo
  * @param right è il figlio destro del nodo
@@ -79,59 +63,142 @@ private:
      */
     void nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB);
 
-    /**
-     * @brief Metodo per rappresentare un albero sotto forma di matrice
-     * Si calcola la posizione del nodo radice all'interno della matrice e poi si richiama il metodo
-     * sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
-     *
-     * @param matrix riferimento a matrice in cui fornire il risultato
-     * @param level livello dell'albero (da 0 fino all'altezza dell'albero)
-     * @param offset offset da sinistra per posizionare il nodo nella matrice
-     * @param width larghezza (in colonne) dell'albero nella matrice
-     */
-    void fillMatrix(std::vector<std::vector<std::string>> &matrix, uint level, uint offset, uint width)
-    {
-        if (isEmpty())
-        {
-            return;
-        }
-        matrix[level][(offset + width) / 2] = to_string_adl(key);              // Inserisco il nodo radice
-        left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
-        right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
-    }
-
-    /**
-     * @brief Metodo per stampare una matrice
-     *
-     * @param matrix è la matrice da stampare a video
-     */
-    void printMatrix(std::vector<std::vector<std::string>> matrix)
-    {
-        if (isEmpty())
-        {
-            std::cout << "Albero vuoto" << std::endl; // Se l'albero è vuoto non ha senso stampare una matrice vuota
-        }
-        else
-        {
-            for (uint i{0}; i < matrix.size(); ++i)
-            {
-                for (uint j{0}; j < matrix[i].size(); ++j)
-                {
-                    std::cout << matrix[i][j] << " ";
-                }
-                std::cout << std::endl; // Fine della riga i
-            }
-        }
-    }
-
 public:
-    bst() : parent{nullptr}, left{nullptr}, right{nullptr}, empty{true} {}
-    bst(T inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
-    bst(T array[], uint lenght) : bst<T, CMP>()
+    /**
+     * @brief Iteratore costante che previene dalla scrittura del valore puntato
+     *
+     */
+    class const_iterator
     {
-        for (u_int i{0}; i < lenght; ++i)
+    private:
+        bst<T> *ptr; //!< puntatore all'elemento associato all'iteratore
+
+        const_iterator(bst<T> *inputPtr) : ptr{inputPtr} {}
+
+    public:
+        using iterator_category = std::input_iterator_tag; // categoria di iteratore
+        using difference_type = std::ptrdiff_t;            // il tipo della differenza tra iteratori
+        using value_type = bst<T>;                         // il valore trattato dall'iteratore
+        using pointer = const value_type *;                // il tipo puntatore
+        using reference = const value_type &;              // il tipo riferimento
+
+        const_iterator() : ptr{nullptr} {}
+
+        const_iterator &operator++() // operatore di incremento prefisso
+        {
+            ptr = ptr->successor();
+            return *this;
+        }
+        const_iterator operator++(int) // operatore di incremento postfisso
+        {
+            const_iterator current{*this}; // copia dell'iteratore corrente
+            ptr = ptr->successor();
+            return current;
+        }
+
+        inline reference operator*() const
+        {
+            return *ptr;
+        }
+
+        inline pointer operator->() const
+        {
+            return ptr;
+        }
+
+        inline bool operator==(const const_iterator &it) const
+        {
+            return ptr == it.ptr;
+        }
+
+        inline bool operator!=(const const_iterator &it) const
+        {
+            return ptr != it.ptr;
+        }
+
+        friend class bst<T>;
+    };
+
+    /**
+     * @brief Costruttore vuoto
+     * Il nodo non punta a genitori o figli e la sua condizione di essere un nodo vuoto è espressa dall'inizializzazione di empty a true.
+     * Inoltre anche se ovviamente il membro key presenta un certo valore, questo non viene reso disponibile dalla funzione getKey()
+     * e quindi di fatto il nodo è come se non avesso una chiave.
+     *
+     */
+    bst() : parent{nullptr}, left{nullptr}, right{nullptr}, empty{true} {}
+
+    /**
+     * @brief Costruttore con passaggio dei parametri per valore
+     *
+     * @param inputKey è la copia del valore del nodo
+     */
+    bst(const T &&inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
+
+    /**
+     * @brief Costruttore con passaggio dei parametri per riferimento
+     *
+     * @param inputKey è il riferimento al valore del nodo
+     */
+    bst(const T &inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
+
+    /**
+     * @brief Costruttore per convertire un array in un albero binario di ricerca
+     *
+     * @param array che si vuole convertire nell'albero binario di ricerca
+     * @param length è la lunghezza dell'array (lvalue)
+     */
+    bst(const T array[], uint &length) : bst<T, CMP>()
+    {
+        for (u_int i{0}; i < length; ++i)
         {
             insertValue(array[i]);
+        }
+    }
+
+    /**
+     * @brief Costruttore per convertire un array in un albero binario di ricerca
+     *
+     * @param array che si vuole convertire nell'albero binario di ricerca
+     * @param length è la lunghezza dell'array (rvalue)
+     */
+    bst(const T array[], uint &&length) : bst<T, CMP>()
+    {
+        for (u_int i{0}; i < length; ++i)
+        {
+            insertValue(array[i]);
+        }
+    }
+
+    /**
+     * @brief Costruttore di copia
+     * Viene costruito un albero uguale all'albero orig
+     *
+     * @param orig è il nodo radice dell'albero che si vuole copiare
+     */
+    bst(const bst<T, CMP> &orig) : bst<T, CMP>()
+    {
+        if (!orig.isEmpty())
+        {
+            key = orig.getKey();
+            empty = false;
+            parent = orig.parent;
+            if (orig.left == nullptr) // Se il figlio sinistro non c'è non serve usare l'operatore di copia
+            {
+                left = nullptr;
+            }
+            else
+            {
+                left = new bst<T, CMP>(*(orig.left));
+            }
+            if (orig.right == nullptr) // Se il figlio destro non c'è non serve usare l'operatore di copia
+            {
+                right = nullptr;
+            }
+            else
+            {
+                right = new bst<T, CMP>(*(orig.right));
+            }
         }
     }
 
@@ -150,11 +217,11 @@ public:
     }
 
     /**
-     * @brief Restituisce un puntatore al sottoalbero sinistro
+     * @brief Restituisce un puntatore al genitore
      *
-     * @return puntatore al sottoalbero sinistro
+     * @return puntatore al genitore
      */
-    inline const bst<T, CMP> *parentTree() const
+    inline bst<T, CMP> *const getParent() const
     {
         return parent;
     }
@@ -164,7 +231,7 @@ public:
      *
      * @return puntatore al sottoalbero sinistro
      */
-    inline const bst<T, CMP> *leftTree() const
+    inline bst<T, CMP> *const getLeft() const
     {
         return left;
     }
@@ -174,7 +241,7 @@ public:
      *
      * @return puntatore al sottoalbero destro
      */
-    inline const bst<T, CMP> *rightTree() const
+    inline bst<T, CMP> *const getRight() const
     {
         return right;
     }
@@ -230,41 +297,18 @@ public:
     }
 
     /**
-     * @brief Inserisce un valore nell'albero
+     * @brief Inserisce un valore nell'albero (passaggio per riferimento)
      *
      * @return puntatore al nuovo albero
      */
-    bst<T, CMP> *insertValue(const T value)
-    {
-        if (isEmpty())
-        {
-            if (this != nullptr) // Se l'albero è stato realizzato dal costruttore vuoto
-            {
-                empty = false;
-                key = value; // inizializza valore della chiave
-                return this;
-            }
-            else // Se l'albero è vuoto e non punta a nulla
-            {
-                return new bst<T, CMP>(value); // Restituisce un albero creato con il value come radice
-            }
-        }
-        else
-        {
-            if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
-            {
-                right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
-                right->parent = this;
-                return this;
-            }
-            else // Se il valore da inserire è minore (o uguale) della chiave del nodo
-            {
-                left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
-                left->parent = this;
-                return this;
-            }
-        }
-    }
+    bst<T, CMP> *insertValue(const T &value);
+
+    /**
+     * @brief Inserisce un valore nell'albero (passaggio per valore)
+     *
+     * @return puntatore al nuovo albero
+     */
+    bst<T, CMP> *insertValue(const T &&value);
 
     /**
      * @brief Visita simmetrica
@@ -275,7 +319,6 @@ public:
         if (!isEmpty())
         {
             left->inorder();
-            // Sostituire cout con un puntatore a funzione per altri scopi di visita
             std::cout << key << " ";
             right->inorder();
         }
@@ -311,7 +354,7 @@ public:
 
     /**
      * @brief  Restituisce il puntatore al successore del nodo
-     * Il successore di un nodo è il valore più piccolo maggiore del nodo
+     * Il successore di un nodo A è il nodo con la chiave più piccola maggiore di quella di A
      *
      * @return puntatore al nodo successore
      */
@@ -323,7 +366,7 @@ public:
         }
         bst<T, CMP> *y = parent;
         bst<T, CMP> *x = this;
-        while ((y != nullptr) && (x = y->right))
+        while ((y != nullptr) && (x == y->right))
         {
             x = y;
             y = y->parent;
@@ -332,8 +375,8 @@ public:
     }
 
     /**
-     * @brief  Restituisce il puntatore al successore del nodo
-     * Il successore di un nodo è il valore più piccolo maggiore del nodo
+     * @brief  Restituisce il puntatore al predecessore del nodo
+     * Il predecessore di un nodo A è il nodo con la chiave più grande minore di quella di A
      *
      * @return puntatore al nodo successore
      */
@@ -345,7 +388,7 @@ public:
         }
         bst<T, CMP> *y = parent;
         bst<T, CMP> *x = this;
-        while (y != nullptr &&x = y->left)
+        while ((y != nullptr) && (x == y->left))
         {
             x = y;
             y = y->parent;
@@ -450,21 +493,20 @@ public:
 
     /**
      * @brief Metodo per l'eliminazione di un albero/sottoalbero
-     * Viene eliminato il puntatore del genitore al figlio su cui è chiamato il metodo
+     * Viene eliminato dal nodo genitore del nodo su cui è chiamato al metodo il puntatore a tale nodo
      */
-    void deleteTree()
+    void remove()
     {
-        if (parent == nullptr) // Se la radice del sottoalbero non ha genitori
+        if (parent != nullptr) // Se la radice del sottoalbero ha il genitore
         {
-            this == nullptr; // L'albero non punto a nessun elemento
-        }
-        if (this == parent->left) // Se il nodo radice è il figlio sinistro
-        {
-            parent->left = nullptr; // Elimino il puntatore al figlio sinistro del genitore
-        }
-        else // Se il nodo radice è il figlio sinistro
-        {
-            parent->right = nullptr; // Elimino il puntatore al figlio destro del genitore
+            if (this == parent->left) // Se il nodo radice è il figlio sinistro
+            {
+                parent->left = nullptr; // Elimino il puntatore al figlio sinistro del genitore
+            }
+            else // Se il nodo radice è il figlio sinistro
+            {
+                parent->right = nullptr; // Elimino il puntatore al figlio destro del genitore
+            }
         }
     }
 
@@ -485,7 +527,7 @@ public:
      *
      * @return intero senza segno che rappresenta l'altezza
      */
-    uint getHeight()
+    uint getHeight() const
     {
         if (isEmpty()) // Caso base: non ci sono più nodi
         {
@@ -497,28 +539,103 @@ public:
     }
 
     /**
-     * @brief Stampare un albero binario
-     * L'albero viene salvato in una matrice [m x n] con numero di righe m uguale all'altezza dell'albero binario
-     * e numero di colonne n un numero dispari. La radice viene posizionato in posizione [0, roundInf(n/2)]
-     * ovvero nella prima riga e nella colonna centrale. La colonna e la riga della radice divide la matrice in due zone:
-     * - zona sinistra, conterrà il sottoalbero sinistro
-     * - zona destra, conterrà il sottoalbero destro
-     * La rappresentazione dei sottoalberi avviene in modo ricorsivo
+     * @brief Metodo per rappresentare un albero sotto forma di matrice
+     * Si calcola la posizione del nodo radice all'interno della matrice e poi si richiama il metodo
+     * sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
+     *
+     * @param matrix riferimento a matrice in cui fornire il risultato
+     * @param level livello dell'albero (da 0 fino all'altezza dell'albero)
+     * @param offset offset da sinistra per posizionare il nodo nella matrice
+     * @param width larghezza (in colonne) dell'albero nella matrice
      */
-    void printTree()
+    void fillMatrix(std::vector<std::vector<std::string>> &matrix, uint level, uint offset, uint width) const
     {
-        uint h{getHeight()};                                                                   // altezza dell'albero
-        uint leaves{(uint)((1 << h) - 1)};                                                     // numero massimo di nodi dell'ultimo livello. Viene calcolato come 2^h - 1
-        std::vector<std::vector<std::string>> matrix(h, std::vector<std::string>(leaves, "")); // creo una matrice [h x leaves]
-        fillMatrix(matrix, 0, 0, leaves);
-        printMatrix(matrix);
+        if (isEmpty())
+        {
+            return;
+        }
+        matrix[level][(offset + width) / 2] = to_string_adl(key);              // Inserisco il nodo radice
+        left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
+        right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
     }
 
-    ~bst()
+    inline const_iterator begin()
     {
-        // ---
+        return const_iterator{min()};
+    }
+
+    inline const_iterator end()
+    {
+        return const_iterator{max()};
     }
 };
+
+
+template <typename T, typename CMP>
+bst<T, CMP> *bst<T, CMP>::insertValue(const T &value)
+{
+    if (isEmpty())
+    {
+        if (this != nullptr) // Se l'albero è stato realizzato dal costruttore vuoto
+        {
+            empty = false;
+            key = value; // inizializza valore della chiave
+            return this;
+        }
+        else // Se l'albero è vuoto e non punta a nulla
+        {
+            return new bst<T, CMP>(value); // Restituisce un albero creato con il value come radice
+        }
+    }
+    else
+    {
+        if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
+        {
+            right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
+            right->parent = this;
+            return this;
+        }
+        else // Se il valore da inserire è minore (o uguale) della chiave del nodo
+        {
+            left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
+            left->parent = this;
+            return this;
+        }
+    }
+}
+
+template <typename T, typename CMP>
+bst<T, CMP> *bst<T, CMP>::insertValue(const T &&value)
+{
+    if (isEmpty())
+    {
+        if (this != nullptr) // Se l'albero è stato realizzato dal costruttore vuoto
+        {
+            empty = false;
+            key = value; // inizializza valore della chiave
+            return this;
+        }
+        else // Se l'albero è vuoto e non punta a nulla
+        {
+            return new bst<T, CMP>(value); // Restituisce un albero creato con il value come radice
+        }
+    }
+    else
+    {
+        if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
+        {
+            right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
+            right->parent = this;
+            return this;
+        }
+        else // Se il valore da inserire è minore (o uguale) della chiave del nodo
+        {
+            left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
+            left->parent = this;
+            return this;
+        }
+    }
+}
 
 template <typename T, typename CMP>
 void bst<T, CMP>::deleteKey(bst<T, CMP> *keyNode)
@@ -565,6 +682,55 @@ void bst<T, CMP>::nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB)
     {
         nodeB->parent = nodeA->parent; // il genitore di nodeB è il genitore di nodeA
     }
+}
+
+/**
+ * @brief Funzione per stampare una matrice
+ *
+ * @param os è lo stream su cui stampare
+ * @param matrix è la matrice da stampare a video
+ * @return std::ostream& è un riferimento allo stream su cui si è stampato
+ */
+std::ostream &printMatrix(std::ostream &os, const std::vector<std::vector<std::string>> &matrix)
+{
+    for (uint i{0}; i < matrix.size(); ++i)
+    {
+        for (uint j{0}; j < matrix[i].size(); ++j)
+        {
+            os << matrix[i][j] << " ";
+        }
+        os << std::endl; // Fine della riga i
+    }
+    return os;
+}
+
+/**
+ * @brief Stampare un albero binario
+ * L'albero viene salvato in una matrice [m x n] con numero di righe m uguale all'altezza dell'albero binario
+ * e numero di colonne n un numero dispari. La radice viene posizionato in posizione [0, roundInf(n/2)]
+ * ovvero nella prima riga e nella colonna centrale. La colonna e la riga della radice divide la matrice in due zone:
+ * - zona sinistra, conterrà il sottoalbero sinistro
+ * - zona destra, conterrà il sottoalbero destro
+ * La rappresentazione dei sottoalberi avviene in modo ricorsivo
+ *
+ * @tparam T è il tipo di elementi dell'albero
+ * @tparam CMP è la relazione d'ordine degli elementi dell'albero
+ * @param os è lo stream su cui stampare
+ * @param tree è l'albero da stampare
+ * @return std::ostream& è un riferimento allo stream su cui abbiamo stampato
+ */
+template <typename T, typename CMP>
+std::ostream &operator<<(std::ostream &os, const bst<T, CMP> &tree)
+{
+    if (tree.isEmpty())
+    {
+        std::cout << "Albero vuoto" << std::endl;
+    }
+    uint h{tree.getHeight()};                                                              // altezza dell'albero
+    uint leaves{(uint)((1 << h) - 1)};                                                     // numero massimo di nodi dell'ultimo livello. Viene calcolato come 2^h - 1
+    std::vector<std::vector<std::string>> matrix(h, std::vector<std::string>(leaves, "")); // creo una matrice [h x leaves]
+    tree.fillMatrix(matrix, 0, 0, leaves);
+    return printMatrix(os, matrix);
 }
 
 #endif

@@ -1,10 +1,11 @@
 #include "bst.hpp"
-#include "bstException.hpp" // include superfluo
+#include "bstException.hpp"
 #include "City.hpp"
 
 void testBST_1();
 void testBST_2();
 void testBST_City();
+void testBST_Iterator();
 
 /**
  * @brief Programma di prova per testare la classe bst
@@ -15,8 +16,8 @@ void testBST_City();
  */
 int main()
 {
-    // testBST_1();
-    // testBST_2();
+    testBST_1();
+    testBST_City();
     try
     {
         testBST_2();
@@ -26,13 +27,14 @@ int main()
         std::cerr << "e.what() :  " << e.what() << std::endl;
         std::cerr << "e.getInfo() :  " << e.getInfo() << std::endl;
     }
+    testBST_Iterator();
 
     return 0;
 }
 
 void testBST_1()
 {
-    uint intArray[] = {8, 3, 2, 5, 6, 12, 15, 13, 18, 16};
+    uint intArray[] = {8, 3, 2, 5, 6, 12, 15};
 
     bst<uint> binSearchTree;
 
@@ -54,21 +56,20 @@ void testBST_2()
 {
     int intArray[] = {8, 3, 8, 2, 5, 6, 12, 15, 13, 18, 16, -2, -1, -10};
 
-    bst<int> bst(intArray, sizeof(intArray) / sizeof(intArray[0]));
+    bst<int> bst_example(intArray, sizeof(intArray) / sizeof(intArray[0]));
 
-    std::cout << "min() = " << bst.min()->getKey() << std::endl;
-    std::cout << "max() = " << bst.max()->getKey() << std::endl;
+    std::cout << "min() = " << bst_example.min()->getKey() << std::endl;
+    std::cout << "max() = " << bst_example.max()->getKey() << std::endl;
 
-    bst.printTree(); 
+    std::cout << bst_example;
 
-    bst.deleteKey(15);
+    bst<int> bstNew(bst_example); // Utilizzo il costruttore di copia
 
-    std::cout << std::endl;
+    bst_example.deleteKey(15); // Elimino il nodo con chiave 15 solo in bst_example
 
-    std::cout << "min() = " << bst.min()->getKey() << std::endl;
-    std::cout << "max() = " << bst.max()->getKey() << std::endl;
-
-    bst.printTree();
+    std::cout << bst_example
+              << "Albero copiato: " << std::endl;
+    std::cout << bstNew; // bstNew resta invariato
 }
 
 void testBST_City()
@@ -84,10 +85,77 @@ void testBST_City()
                      City("Madrid", 3223000),
                      City("Dubai", 3331000)};
 
-    bst<City> bst(cities, sizeof(cities) / sizeof(cities[0]));
+    bst<City> bstCity(cities, sizeof(cities) / sizeof(cities[0]));
 
-    std::cout << "min() = " << bst.min()->getKey() << std::endl;
-    std::cout << "max() = " << bst.max()->getKey() << std::endl;
+    std::cout << "min() = " << bstCity.min()->getKey() << std::endl;
+    std::cout << "max() = " << bstCity.max()->getKey() << std::endl;
 
-    bst.printTree();
+    std::cout << bstCity;
 }
+
+template <typename T>
+void const_rvalue_iterator(bst<T> &tree)
+{
+    std::cout << "Stampa dell'albero tramite iteratori: ";
+    for (auto &elem : tree)
+    {
+        std::cout << elem.getKey() << " ";
+    }
+    std::cout << std::endl;
+}
+
+void testBST_Iterator()
+{
+    int intArray[] = {8, 3, 8, 2, 5, 6, 12, 15, 13, 18, 16, -2, -1, -10};
+
+    bst<int> bst_example(intArray, sizeof(intArray) / sizeof(intArray[0]));
+
+    std::cout << "bst_example:\n"
+              << bst_example << std::endl;
+
+    const_rvalue_iterator(bst_example);
+
+    bst_example.getLeft()->remove();
+    std::cout << "bst_example senza ramo sinistro:\n"
+              << bst_example << std::endl;
+}
+
+// METTIAMOLA NEL README
+/** @mainpage Presentazione del progetto
+ *
+ * @author Giacomo Gobbo
+ *
+ * @date 25.jan.2023 - 6.feb.2023
+ *
+ * @section A Caratteristiche di un albero di ricerca binario
+ *
+ * Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è una albero binario con radice in cui
+ * le chiavi di ogni suo nodo sono maggiori di tutte le chiavi nei rispettivi nodi del sottoalbero sinistro e minore di
+ * quelli del sottoalbero destro. La complessità delle operazioni di ricerca nel BST sono direttamente proporzionali all'altezza dell'albero
+ * e quindi i BST permettono inserimenti e rimozioni rapide di dati.
+ * Le prestazioni di un BST dipendono dall'ordine di inserimento dei nodi nell'albero, e la complessità nel caso medio per
+ * l'inserimento, la ricerca e l'eliminazione è Olog(n) per n nodi. Nel caso peggiore un BST si comporta come una lista concatenata (complessità O(n)).
+ *
+ * Operazione    | Complessità al caso pessimo | Complessità al caso medio
+ * ------------- | ------------- | -------------
+ * Visita        | O(n)          | O(n)
+ * Ricerca       | O(n)          | O(h)
+ * Inserimento   | O(n)          | O(h)
+ * Cancellazione | O(n)          | O(h)
+ *
+ * Maggiori informazioni su: https://it.wikipedia.org/wiki/Albero_binario_di_ricerca
+ *
+ *
+ * @image html example.png Esempio di un BST con 9 nodi e alto 4
+ *
+ * @section B Elenco dei file presenti
+ *
+ * @subsection BA bst.hpp
+ * Contiene il codice sorgente dell'implementazione di un albero binario di ricerca
+ *
+ * @subsection BB City.hpp
+ * Contiene il codice sorgente per implementare una classe che rappresenti una città
+ *
+ * @subsection BC bstException.hpp
+ * Contiene il codice sorgente per implementare una classe che estende std::exception utile per gestire eccezioni in un oggetto BST
+ */
