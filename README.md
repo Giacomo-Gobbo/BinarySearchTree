@@ -23,7 +23,7 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
 ## Utilizzo
 Creazione di un albero
-```c++
+```cpp
 #include "bst.hpp"
 
 int main()
