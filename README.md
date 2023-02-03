@@ -3,9 +3,8 @@ Implementazione in c++ di una classe per rappresentare gli alberi di ricerca bin
 
 ## Indice
 1. [Informazioni generali](#informazioni-generali)
-2. [Utilizzo](#usage)
-3. [Classi](#classes)
-4. [Altro](#other)
+2. [Utilizzo](#utilizzo)
+3. [Classi](#classi)
 
 ## Informazioni generali
 
@@ -45,29 +44,18 @@ uintTree.deleteKey(4) // Viene eliminato il nodo con chiave uguale a 4 (se è pr
 std::cout << uintTree; // L'operatore << è sovvracaricato
 
 // Ottieni minimo
-// Bisogna prima ottenere il puntatore al valore minimo, dopodiché lo si ottiene con il metodo getKey()
+// Bisogna prima ottenere il puntatore al valore minimo, dopodiché se ne ottiene il valore della chiave con il metodo getKey()
 uintTree.min()->getKey();
 ```
 
-## CLassi
+## Classi
+Per una dettagliata documentazione sulle classi si consiglia di scaricare il file compresso html.rar
 ### bst.hpp
-Classe che rappresenta un albero binario di ricerca.
-#### Attributi
-#### Costruttori
-#### Metodi
-#### Funzioni
+Classe per la rappresentazione degli alberi binari di ricerca. Un albero è definito in modo ricorsivo dal valore della sua radice, dal puntatore al nodo genitore e dai puntatori ai suoi sottoalberi sinistro e destro.
 ### bstException.hpp
 Classe che implementa l'eccezione di valore non trovato in un albero.
-#### Attributi
-#### Costruttori
-#### Metodi
-#### Funzioni
 ### City.hpp
 Classe che implementa la rappresentazione di una città.
-#### Attributi
-#### Costruttori
-#### Metodi
-#### Funzioni
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=giacomo-gobbo&label=Visite&color=ed3535&style=flat" alt="giacomo-gobbo" /> </p>
 
