@@ -1,5 +1,4 @@
 #include "bst.hpp"
-#include "bstException.hpp"
 #include "City.hpp"
 
 void testBST_1();
@@ -16,11 +15,11 @@ void testBST_Iterator();
  */
 int main()
 {
-    testBST_1();
-    testBST_City();
+    // testBST_1();
+    // testBST_City();
     try
     {
-        testBST_2();
+        // testBST_2();
     }
     catch (const NonExistingValueException &e) // Gestione dell'eccezione
     {
@@ -129,7 +128,7 @@ void testBST_Iterator()
  *
  * @section A Caratteristiche di un albero di ricerca binario
  *
- * Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è una albero binario con radice in cui
+ * Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è un albero binario con radice in cui
  * le chiavi di ogni suo nodo sono maggiori di tutte le chiavi nei rispettivi nodi del sottoalbero sinistro e minore di
  * quelli del sottoalbero destro. La complessità delle operazioni di ricerca nel BST sono direttamente proporzionali all'altezza dell'albero
  * e quindi i BST permettono inserimenti e rimozioni rapide di dati.

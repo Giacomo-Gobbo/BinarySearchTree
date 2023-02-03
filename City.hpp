@@ -5,7 +5,7 @@
 #include <string>
 
 /**
- * @brief Classe per reppresentare una città
+ * @brief Classe per rappresentare una città
  * 
  * @param name è il nome della città
  * @param population è il numero di abitanti della città * 
@@ -44,12 +44,27 @@ public:
 
 /**
  * @brief Overload dell'operatore ()
- * È un "less invertito", cioè considera maggiori le città con popolazione minore
+ * È un "less invertito", cioè considera minori le città con popolazione maggiore
  * 
  * @param a prima città da confrontare
  * @param b seconda città da controntare
  * @return true se la popolazione di a è maggiore della popolazione di b
  * @return false se la popolazione di a è minore della popolazione di b
+ */
+template <>
+bool std::less<City>::operator()(const City &a, const City &b) const
+{
+    return a.getPopulation() > b.getPopulation();
+}
+
+/**
+ * @brief Overload dell'operatore ()
+ * È un "greater invertito", cioè considera maggiori le città con popolazione minore
+ * 
+ * @param a prima città da confrontare
+ * @param b seconda città da controntare
+ * @return true se la popolazione di a è minore della popolazione di b
+ * @return false se la popolazione di a è maggiore della popolazione di b
  */
 template <>
 bool std::greater<City>::operator()(const City &a, const City &b) const

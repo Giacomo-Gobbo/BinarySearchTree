@@ -508,6 +508,7 @@ public:
                 parent->right = nullptr; // Elimino il puntatore al figlio destro del genitore
             }
         }
+        delete this;
     }
 
     /**
@@ -559,17 +560,32 @@ public:
         right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
     }
 
+    /**
+     * @brief Metodo che restituisce il primo valore dell'albero (si prende il minimo)
+     *
+     * @return const_iterator è il puntatore al primo valore dell'albero
+     */
     inline const_iterator begin()
     {
         return const_iterator{min()};
     }
 
+    /**
+     * @brief Metodo che restituisce l'ultimo valore dell'albero (si prende il massimo)
+     *
+     * @return const_iterator è il puntatore all'ultimo puntatore dell'albero
+     */
     inline const_iterator end()
     {
         return const_iterator{max()};
     }
-};
 
+    ~bst()
+    {
+        delete left;
+        delete right;
+    }
+};
 
 template <typename T, typename CMP>
 bst<T, CMP> *bst<T, CMP>::insertValue(const T &value)
@@ -650,7 +666,7 @@ void bst<T, CMP>::deleteKey(bst<T, CMP> *keyNode)
     }
     else // Se ha entrambi i figli
     {
-        bst<T, CMP> *S = keyNode->successor();
+        bst<T, CMP> *S{keyNode->successor()};
         if (S->parent != keyNode) // Se il successore non è il figlio del nodo da eliminare
         {
             nodeChange(S, S->right);   // Il figlio destro sostituisce il successore
@@ -661,6 +677,9 @@ void bst<T, CMP>::deleteKey(bst<T, CMP> *keyNode)
         S->left = keyNode->left;
         S->left->parent = S;
     }
+    keyNode->left = nullptr;  // È necessario eliminare i puntatori ai figli (che adesso non riconoscono più keyNode come padre)
+    keyNode->right = nullptr; // altrimenti verrano erroneamente eliminati dal distruttore
+    delete keyNode;
 }
 
 template <typename T, typename CMP>
