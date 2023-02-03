@@ -2,7 +2,6 @@
 Implementazione in c++ di una classe per rappresentare gli alberi di ricerca binaria
 
 ## Classe bst.hpp
-***
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
