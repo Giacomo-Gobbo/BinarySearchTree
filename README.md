@@ -2,12 +2,12 @@
 Implementazione in c++ di una classe per rappresentare gli alberi di ricerca binaria
 
 ## Indice
-1. [Informazioni generali](#general-info)
+1. [Informazioni generali](#informazioni-generali)
 2. [Utilizzo](#usage)
 3. [Classi](#classes)
 4. [Altro](#other)
 
-## Informazioni generali(#general-info)
+## Informazioni generali
 
 Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è una albero binario con radice in cui le chiavi di ogni suo nodo sono maggiori di tutte le chiavi nei rispettivi nodi del sottoalbero sinistro e minore di quelli del sottoalbero destro. La complessità delle operazioni di ricerca nel BST sono direttamente proporzionali all'altezza dell'albero e quindi i BST permettono inserimenti e rimozioni rapide di dati.
 | Operazione | Complessità al caso pessimo | Complessità al caso medio |
@@ -19,8 +19,6 @@ Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è u
 
 Maggiori informazioni su: https://it.wikipedia.org/wiki/Albero_binario_di_ricerca
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
-
 ## Utilizzo
 Creazione di un albero
 ```cpp
@@ -28,8 +26,8 @@ Creazione di un albero
 
 int main()
 {
-  // Crea un albero con un naturale
-  bst<uint> uintTree(3);
+  // Crea un albero di interi
+  bst<int> uintTree(3);
   
   // Aggiungi dei nodi figli
   uintTree.insertValue(2);
@@ -38,6 +36,39 @@ int main()
   return 0;
 }
 ```
+Analisi di un albero
+```cpp
+// Eliminazione di un nodo
+uintTree.deleteKey(4) // Viene eliminato il nodo con chiave uguale a 4 (se è presente)
+
+// Stampa di un albero
+std::cout << uintTree; // L'operatore << è sovvracaricato
+
+// Ottieni minimo
+// Bisogna prima ottenere il puntatore al valore minimo, dopodiché lo si ottiene con il metodo getKey()
+uintTree.min()->getKey();
+```
+
+## CLassi
+### bst.hpp
+Classe che rappresenta un albero binario di ricerca.
+#### Attributi
+#### Costruttori
+#### Metodi
+#### Funzioni
+### bstException.hpp
+Classe che implementa l'eccezione di valore non trovato in un albero.
+#### Attributi
+#### Costruttori
+#### Metodi
+#### Funzioni
+### City.hpp
+Classe che implementa la rappresentazione di una città.
+#### Attributi
+#### Costruttori
+#### Metodi
+#### Funzioni
+
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=giacomo-gobbo&label=Visite&color=ed3535&style=flat" alt="giacomo-gobbo" /> </p>
 
 <h3 align="left">Connect with me:</h3>
