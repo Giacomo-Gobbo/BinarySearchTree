@@ -49,9 +49,11 @@ uintTree.min()->getKey();
 ```
 
 ## Classi
-Per una dettagliata documentazione sulle classi si consiglia di scaricare il file compresso html.rar
+Per una dettagliata documentazione sulle classi si consiglia di scaricare il file compresso html.rar.
 ### bst.hpp
 Classe per la rappresentazione degli alberi binari di ricerca. Un albero è definito in modo ricorsivo dal valore della sua radice, dal puntatore al nodo genitore e dai puntatori ai suoi sottoalberi sinistro e destro.
+#### const_iterator
+Iteratore costante per gli alberi binari di ricerca.
 ### bstException.hpp
 Classe che implementa l'eccezione di valore non trovato in un albero.
 ### City.hpp
