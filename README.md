@@ -19,11 +19,13 @@ Un albero di ricerca binaria (BST), anche chiamato albero binario ordinato, è u
 Maggiori informazioni su: https://it.wikipedia.org/wiki/Albero_binario_di_ricerca
 
 ## Utilizzo
-Dopo aver scricato i file con estensione hpp e il file make. Compilare con i seguenti comandi:
+Scaricare i file con estensione hpp e il file make. Per utilizzare test.cpp, compilare con i seguenti comandi:
 ```bash
 cmake . -G Ninja
 ninja
 ```
+Altrimenti modificare il file CMakeList.txt sostituendo "test.cpp" con il file da voi creato.
+
 Creazione di un albero
 ```cpp
 #include "bst.hpp"
