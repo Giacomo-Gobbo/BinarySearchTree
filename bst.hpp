@@ -89,11 +89,65 @@ public:
             ptr = ptr->successor();
             return *this;
         }
+
         const_iterator operator++(int) // operatore di incremento postfisso
         {
             const_iterator current{*this}; // copia dell'iteratore corrente
             ptr = ptr->successor();
             return current;
+        }
+
+        const_iterator &operator--() // operatore di decremento prefisso
+        {
+            ptr = ptr->predecessor();
+            return *this;
+        }
+
+        const_iterator operator--(int) // operatore di decremento postfisso
+        {
+            const_iterator current{*this}; // copia dell'iteratore corrente
+            ptr = ptr->predecessor();
+            return current;
+        }
+
+        const_iterator &operator+(uint i)
+        {
+            while (i > 0)
+            {
+                ++(*this);
+                --i;
+            }
+            return *this;
+        }
+
+        const_iterator &operator-(uint i)
+        {
+            while (i > 0)
+            {
+                --(*this);
+                --i;
+            }
+            return *this;
+        }
+
+        const_iterator &operator+=(uint i)
+        {
+            while (i > 0)
+            {
+                ++(*this);
+                --i;
+            }
+            return *this;
+        }
+
+        const_iterator &operator-=(uint i)
+        {
+            while (i > 0)
+            {
+                --(*this);
+                --i;
+            }
+            return *this;
         }
 
         inline reference operator*() const
