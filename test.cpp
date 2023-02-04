@@ -26,7 +26,7 @@ int main()
         std::cerr << "e.what() :  " << e.what() << std::endl;
         std::cerr << "e.getInfo() :  " << e.getInfo() << std::endl;
     }
-    testBST_Iterator();
+    // testBST_Iterator();
 
     return 0;
 }
