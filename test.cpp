@@ -10,8 +10,9 @@ void testBST_Iterator();
  * @brief Programma di prova per testare la classe bst
  * Sono definite le seguenti funzioni di prova:
  * 1 - testBST_1() per creare un albero binario di naturali e visitarlo in modo simmetrico, anticipato e posticipato
- * 2 - testBST_2() per creare un albero binario di interi e visualizzarlo graficamente
+ * 2 - testBST_2() per creare un albero binario di interi, visualizzarlo graficamente ed eliminare un nodo
  * 3 - testBST_City() per creare un albero binario di città
+ * 4 - testBST_Iterator() per sfruttare gli iteratori nella lettura di un albero
  */
 int main()
 {
