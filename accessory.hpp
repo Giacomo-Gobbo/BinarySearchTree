@@ -1,6 +1,7 @@
 #ifndef __accessory_hpp__
 #define __accessory_hpp__
 
+#include <iostream>
 #include <vector>
 #include <string>
 
