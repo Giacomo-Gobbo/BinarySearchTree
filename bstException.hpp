@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-#include "accessories.hpp"
+#include "accessory.hpp"
 
 /**
  * @brief Classe per la gestione delle eccezioni provocate dalla ricerca di nodi non presenti nell'albero

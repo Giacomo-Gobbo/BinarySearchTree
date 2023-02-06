@@ -16,17 +16,17 @@ void testBST_Iterator();
 int main()
 {
     testBST_1();
-    testBST_City();
+    // testBST_City();
     try
     {
-        testBST_2();
+        // testBST_2();
     }
     catch (const NonExistingValueException &e) // Gestione dell'eccezione
     {
         std::cerr << "e.what() :  " << e.what() << std::endl;
         std::cerr << "e.getInfo() :  " << e.getInfo() << std::endl;
     }
-    testBST_Iterator();
+    // testBST_Iterator();
 
     return 0;
 }
@@ -71,6 +71,7 @@ void testBST_2()
 
     bst<int> bstNew(bst_example); // Utilizzo il costruttore di copia
 
+    // bst_example.deleteKey(14); // Errore!!! 14 non è presente nell'albero
     bst_example.deleteKey(15); // Elimino il nodo con chiave 15 solo in bst_example
 
     std::cout << bst_example
@@ -103,7 +104,7 @@ template <typename T>
 void const_rvalue_iterator(bst<T> &tree)
 {
     std::cout << "Stampa dell'albero tramite iteratori: ";
-    for (auto &elem : tree)
+    for (auto &elem : tree) // È presente l'iteratore di input quindi è possibile questa sintassi compatta
     {
         std::cout << elem.getKey() << " ";
     }
@@ -164,4 +165,7 @@ void testBST_Iterator()
  *
  * @subsection BC bstException.hpp
  * Contiene il codice sorgente per implementare una classe che estende std::exception utile per gestire eccezioni in un oggetto BST
+ * 
+ * @subsection BD accessory.hpp
+ * Contiene funzioni utilizzate dalla classe bst, ma non specifiche degli alberi binari di ricerca
  */

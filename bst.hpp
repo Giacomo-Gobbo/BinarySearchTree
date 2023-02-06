@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "bstException.hpp"
-#include "accessories.hpp"
+#include "accessory.hpp"
 
 /**
  * @class bst
@@ -72,7 +72,8 @@ private:
 public:
     /**
      * @brief Iteratore costante per un albero binario di ricerca
-     * Non viene fornito un iteratore non costante perché non è permessa la scrittua in un albero binario di ricerca
+     * 
+     * Non viene fornito un iteratore non costante perché non è permessa la scrittura in un albero binario di ricerca
      * (bisogna mantenere l'ordinamento)
      */
     class const_iterator
@@ -420,6 +421,26 @@ public:
     bst<T, CMP> *insertValue(const T &&value);
 
     /**
+     * @brief Funzione ausiliaria di insertValue() per inserire un nodo nel sottoalbero sinistro di un nodo
+     *
+     * @param node è l'albero su cui si sta aggiungendo il nodo
+     * @param value è il valore del nodo da aggiungere
+     * @return bst<T, CMP>* puntatore all'albero aggiornato con il nuovo nodo
+     */
+    static bst<T, CMP> *insertLeft(bst<T, CMP> *node, const T &value);
+
+    /**
+     * @brief Funzione ausiliaria di insertValue() per inserire un nodo nel sottoalbero destro di un nodo
+     *
+     * Aggiorna il sottoalbero destro di node con il nuovo nodo
+     *
+     * @param node è l'albero su cui si sta aggiungendo il nodo
+     * @param value è il valore del nodo da aggiungere
+     * @return bst<T, CMP>* puntatore all'albero aggiornato con il nuovo nodo
+     */
+    static bst<T, CMP> *insertRight(bst<T, CMP> *node, const T &value);
+
+    /**
      * @brief Visita simmetrica
      * L'albero binario viene visitato partendo dal sottoalbero sinistro continuando con la radice e poi con il sottoalbero destro
      */
@@ -473,6 +494,10 @@ public:
         {
             return right->min();
         }
+        if (parent == nullptr) // Se il nodo è radice e non ha un ramo destro allora non c'è il successore
+        {
+            throw NonExistingValueException();
+        }
         bst<T, CMP> *y = parent;
         bst<T, CMP> *x = this;
         while ((y != nullptr) && (x == y->right))
@@ -494,6 +519,10 @@ public:
         if (left != nullptr)
         {
             return left->max();
+        }
+        if (parent == nullptr) // Se il nodo è radice e non ha un ramo sinistro allora non c'è il predecessore
+        {
+            throw NonExistingValueException();
         }
         bst<T, CMP> *y = parent;
         bst<T, CMP> *x = this;
@@ -674,9 +703,9 @@ public:
     }
 
     /**
-     * @brief Metodo che restituisce il primo valore dell'albero (si prende il minimo)
+     * @brief Metodo che restituisce l'iteratore corrispondente al primo valore dell'albero (si prende il minimo)
      *
-     * @return const_iterator è il puntatore al primo valore dell'albero
+     * @return const_iterator è l'iteratore corrispondente al primo valore dell'albero
      */
     inline const_iterator begin()
     {
@@ -684,9 +713,9 @@ public:
     }
 
     /**
-     * @brief Metodo che restituisce l'ultimo valore dell'albero (si prende il massimo)
+     * @brief Metodo che restituisce l'iteratore corrispondente all'ultimo valore dell'albero (si prende il massimo)
      *
-     * @return const_iterator è il puntatore all'ultimo puntatore dell'albero
+     * @return const_iterator è l'iteratore corrispondente all'ultimo puntatore dell'albero
      */
     inline const_iterator end()
     {
@@ -707,29 +736,21 @@ bst<T, CMP> *bst<T, CMP>::insertValue(const T &value)
     {
         if (this != nullptr) // Se l'albero è stato realizzato dal costruttore vuoto
         {
-            empty = false;
-            key = value; // inizializza valore della chiave
+            empty = false; // Non è più vuoto
+            key = value;   // inizializza valore della chiave
             return this;
         }
         else // Se l'albero è vuoto e non punta a nulla
         {
-            return new bst<T, CMP>(value); // Restituisce un albero creato con il value come radice
+            return new bst<T, CMP>(value); // Restituisce un albero creato con value come chiave associata alla radice
         }
     }
     else
     {
-        if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
-        {
-            right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
-            right->parent = this;
-            return this;
-        }
-        else // Se il valore da inserire è minore (o uguale) della chiave del nodo
-        {
-            left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
-            left->parent = this;
-            return this;
-        }
+        if (cmp(value, key))                 // Se il valore da inserire è maggiore della chiave del nodo
+            return insertRight(this, value); // Inserisci valore nel sottoalbero destro
+        else                                 // Se il valore da inserire è minore (o uguale) della chiave del nodo
+            return insertLeft(this, value);  // Inserisci valore nel sottoalbero sinistro
     }
 }
 
@@ -751,19 +772,27 @@ bst<T, CMP> *bst<T, CMP>::insertValue(const T &&value)
     }
     else
     {
-        if (cmp(value, key)) // Se il valore da inserire è maggiore della chiave del nodo
-        {
-            right = right->insertValue(value); // Inserisci valore nel sottoalbero destro
-            right->parent = this;
-            return this;
-        }
-        else // Se il valore da inserire è minore (o uguale) della chiave del nodo
-        {
-            left = left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
-            left->parent = this;
-            return this;
-        }
+        if (cmp(value, key))                 // Se il valore da inserire è maggiore della chiave del nodo
+            return insertRight(this, value); // Inserisci valore nel sottoalbero destro
+        else                                 // Se il valore da inserire è minore (o uguale) della chiave del nodo
+            return insertLeft(this, value);  // Inserisci valore nel sottoalbero sinistro
     }
+}
+
+template <typename T, typename CMP>
+bst<T, CMP> *bst<T, CMP>::insertLeft(bst<T, CMP> *node, const T &value)
+{
+    node->left = node->left->insertValue(value); // Inserisci valore nel sottoalbero sinistro
+    node->left->parent = node;
+    return node;
+}
+
+template <typename T, typename CMP>
+bst<T, CMP> *bst<T, CMP>::insertRight(bst<T, CMP> *node, const T &value)
+{
+    node->right = node->right->insertValue(value); // Inserisci valore nel sottoalbero destro
+    node->right->parent = node;
+    return node;
 }
 
 template <typename T, typename CMP>
@@ -817,32 +846,14 @@ void bst<T, CMP>::nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB)
 }
 
 /**
- * @brief Funzione per stampare una matrice
- *
- * @param os è lo stream su cui stampare
- * @param matrix è la matrice da stampare a video
- * @return std::ostream& è un riferimento allo stream su cui si è stampato
- */
-std::ostream &printMatrix(std::ostream &os, const std::vector<std::vector<std::string>> &matrix)
-{
-    for (uint i{0}; i < matrix.size(); ++i)
-    {
-        for (uint j{0}; j < matrix[i].size(); ++j)
-        {
-            os << matrix[i][j] << " ";
-        }
-        os << std::endl; // Fine della riga i
-    }
-    return os;
-}
-
-/**
  * @brief Stampare un albero binario
+ *
  * L'albero viene salvato in una matrice [m x n] con numero di righe m uguale all'altezza dell'albero binario
- * e numero di colonne n un numero dispari. La radice viene posizionato in posizione [0, roundInf(n/2)]
- * ovvero nella prima riga e nella colonna centrale. La colonna e la riga della radice divide la matrice in due zone:
- * - zona sinistra, conterrà il sottoalbero sinistro
- * - zona destra, conterrà il sottoalbero destro
+ * e numero di colonne n dispari, pari al numero di foglie dell'ultimo livello fosse completo più uno.
+ * La radice viene posizionata in posizione [0, roundInf(n/2)] ovvero nella prima riga e nella colonna centrale.
+ * La colonna e la riga della radice divide la matrice in due zone:
+ * #- zona sinistra, conterrà il sottoalbero sinistro
+ * #- zona destra, conterrà il sottoalbero destro
  * La rappresentazione dei sottoalberi avviene in modo ricorsivo
  *
  * @tparam T è il tipo di elementi dell'albero
@@ -858,10 +869,10 @@ std::ostream &operator<<(std::ostream &os, const bst<T, CMP> &tree)
     {
         std::cout << "Albero vuoto" << std::endl;
     }
-    uint h{tree.height()};                                                                 // altezza dell'albero
-    uint leaves{(uint)((1 << h) - 1)};                                                     // numero massimo di nodi dell'ultimo livello. Viene calcolato come 2^h - 1
-    std::vector<std::vector<std::string>> matrix(h, std::vector<std::string>(leaves, "")); // creo una matrice [h x leaves]
-    tree.fillMatrix(matrix, 0, 0, leaves);
+    uint h{tree.height()};                                                                     // altezza dell'albero
+    uint leaves{(uint)(1 << h)};                                                               // numero massimo di nodi dell'ultimo livello. Viene calcolato come 2^h - 1
+    std::vector<std::vector<std::string>> matrix(h, std::vector<std::string>(leaves + 1, "")); // creo una matrice [h x leaves]
+    tree.fillMatrix(matrix, 0, 0, leaves);                                                     // riempo la matrice
     return printMatrix(os, matrix);
 }
 
