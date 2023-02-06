@@ -7,26 +7,31 @@
 #include <math.h>
 
 #include "bstException.hpp"
+#include "accessories.hpp"
 
 /**
  * @class bst
  *
  * @brief Classe per la rappresentazione degli alberi binari di ricerca.
- * Un albero è definito in modo ricorsivo dal valore della sua radice, dal puntatore al nodo genitore
+ * Un albero è definito in modo ricorsivo dal valore della sua radice, dal puntatore al nodo genitore (se è un sottoalbero)
  * e dai puntatori ai suoi sottoalberi sinistro e destro.
  *
- * Note: in questa classe i termini nodo e albero vengono interscambiati. Nonostante siano entità diverse
+ * Nota: in questa classe i termini nodo e albero vengono interscambiati. Nonostante siano entità diverse
  * (un albero è composto da nodi), per come è stata definita la classe un puntatore a bst<T, CMP> indica
  * sia un nodo, perché bst<T, CMP> ha un valore key che è il valore del nodo, sia un albero, perché contiene
- * i puntatori ai nodi (o appunto alberi) figli (si possono pensare come agli archi di un grafo).
+ * i puntatori ai nodi (o appunto alberi) figli. Un oggetto bst<T, CMP> si può quindi pensare o come a un albero
+ * o coma a un nodo più i suoi archi.
  *
- * @tparam key è il valore del nodo
- * @tparam cmp è la relazione d'ordine da utilizzare. È necessario utilizzare un comparatore che esprima la relazione
+ * @tparam T è il tipo di dato delle chiavi associate ai nodi
+ * @tparam CMP è la relazione d'ordine del tipo T
+ *
+ * @param key è il valore dela chiave associata al nodo
+ * @param parent è il puntatore al genitore del nodo
+ * @param left è il puntatore al figlio sinistro del nodo
+ * @param right è il untatore al figlio destro del nodo
+ * @param empty indica la presenza di un valore nel nodo (true se non è presente, false se è presente) per classificare i nodo vuoti
+ * @param cmp è la relazione d'ordine da utilizzare. È necessario utilizzare un comparatore che esprima la relazione
  * d'ordine di "maggiore" se si vuole ottenere un albero binario ordinato correttamente
- * @param parent è il genitore del nodo
- * @param left è il figlio sinistro del nodo
- * @param right è il figlio destro del nodo
- * @param empty indica la preseza di un valore nel nodo (serve a classificare un nodo vuoto)
  */
 template <typename T, typename CMP = std::greater<T>>
 class bst
@@ -41,75 +46,112 @@ private:
 
     /**
      * @brief Eliminazione di un nodo dall'albero mediante puntatore al nodo da eliminare
-     * Sia N il nodo da eliminare, ci sono tre casi possibili:
-     * 1 - N è un nodo foglia, il puntatore a N del genitore viene sostituito con nullptr (N.parent non ha più il figlio N)
-     *     e quindi N viene rimosso dall'albero.
-     * 2 - N ho solo un figlio, il figlio diventa figlio sinistro del genitore di N (se N è il figlio sinistro del suo genitore)
-     *     o figlio destro del genitore di N (se N è il figlio destro del suo genitore) e quindi N viene rimosso dall'albero.
-     * 3 - N ha entrambi i figli, sia S il successore di N, S prende la posizione di N nell'albero.
-     *     Se S è il figlio destro (diretto) di N, allora S sostituisce N e il puntatore al figlio sinistro di S diventa uguale al
-     *     puntatore al figlio sinistro di N.
-     *     Se S non è il figlio destro immediato di N, allora S viene sostituito dal figlio destro si S e S prende la posizione di N
      *
-     * @param keyNode Nodo da eliminare
+     * Sia N il nodo da eliminare, ci sono tre casi possibili:
+     * -# N è un nodo foglia; il puntatore a N del genitore viene sostituito con nullptr (N.parent non ha più il figlio N)
+     *    e quindi N viene rimosso dall'albero.
+     * -# N ha solo un figlio; il figlio diventa figlio sinistro del genitore di N (se N è il figlio sinistro del suo genitore)
+     *    o figlio destro del genitore di N (se N è il figlio destro del suo genitore) e quindi N viene rimosso dall'albero.
+     * -# N ha entrambi i figli; sia S il successore di N, S prende la posizione di N nell'albero.
+     *    Se S è il figlio destro (diretto) di N, allora S sostituisce N e il puntatore al figlio sinistro di S diventa uguale al
+     *    puntatore al figlio sinistro di N.
+     *    Se S non è il figlio destro immediato di N, allora S viene sostituito dal figlio destro si S e S prende la posizione di N
+     *
+     * @param keyNode puntatore al nodo da eliminare
      */
     void deleteKey(bst<T, CMP> *keyNode);
 
     /**
      * @brief Sostituzione di un nodo
      *
-     * @param nodeA nodo che deve essere sostituito
-     * @param nodeB nodo che sostituisce il nodeA
+     * @param nodeA puntatore al nodo che deve essere sostituito
+     * @param nodeB puntatore al nodo che sostituisce il nodeA
      */
     void nodeChange(bst<T, CMP> *nodeA, bst<T, CMP> *nodeB);
 
 public:
     /**
-     * @brief Iteratore costante che previene dalla scrittura del valore puntato
-     *
+     * @brief Iteratore costante per un albero binario di ricerca
+     * Non viene fornito un iteratore non costante perché non è permessa la scrittua in un albero binario di ricerca
+     * (bisogna mantenere l'ordinamento)
      */
     class const_iterator
     {
     private:
-        bst<T> *ptr; //!< puntatore all'elemento associato all'iteratore
+        bst<T> *ptr; // puntatore all'elemento associato all'iteratore
 
+        /**
+         * @brief Costruttore privato
+         *
+         * @param inputPtr è il puntatore da associare all'iteratore
+         */
         const_iterator(bst<T> *inputPtr) : ptr{inputPtr} {}
 
     public:
-        using iterator_category = std::input_iterator_tag; // categoria di iteratore
+        using iterator_category = std::input_iterator_tag; // categoria di iteratore (nota: in realtà è un'estensione di un operatore di input
+                                                           // con funzionalità di un operatore ad accesso casuale)
         using difference_type = std::ptrdiff_t;            // il tipo della differenza tra iteratori
         using value_type = bst<T>;                         // il valore trattato dall'iteratore
         using pointer = const value_type *;                // il tipo puntatore
         using reference = const value_type &;              // il tipo riferimento
 
+        /**
+         * @brief Costruttore vuoto pubblico
+         */
         const_iterator() : ptr{nullptr} {}
 
-        const_iterator &operator++() // operatore di incremento prefisso
+        /**
+         * @brief Operatore di incremento prefisso
+         *
+         * @return const_iterator& restituisce il riferimento al successivo elemento
+         */
+        const_iterator &operator++()
         {
             ptr = ptr->successor();
             return *this;
         }
 
-        const_iterator operator++(int) // operatore di incremento postfisso
+        /**
+         * @brief Operatore di incremento postfisso
+         *
+         * @return const_iterator è una copia dell'iteratore precedente all'incremento
+         */
+        const_iterator operator++(int)
         {
             const_iterator current{*this}; // copia dell'iteratore corrente
             ptr = ptr->successor();
             return current;
         }
 
-        const_iterator &operator--() // operatore di decremento prefisso
+        /**
+         * @brief Operatore di decremento prefisso
+         *
+         * @return const_iterator& è il riferimento al precedente elemento
+         */
+        const_iterator &operator--()
         {
             ptr = ptr->predecessor();
             return *this;
         }
 
-        const_iterator operator--(int) // operatore di decremento postfisso
+        /**
+         * @brief Operatore di decremento postfisso
+         *
+         * @return const_iterator è una copia dell'iteratore precedente all'incremento
+         */
+        const_iterator operator--(int)
         {
             const_iterator current{*this}; // copia dell'iteratore corrente
             ptr = ptr->predecessor();
             return current;
         }
 
+        /**
+         * @brief Overload dell'operatore somma per un iteratore
+         *
+         * @param i è l'incremento dell'indice
+         * @return const_iterator& è il riferimento all'elemento i-esimo a partire da quello corrente
+         */
         const_iterator &operator+(uint i)
         {
             while (i > 0)
@@ -120,6 +162,12 @@ public:
             return *this;
         }
 
+        /**
+         * @brief Overload dell'operatore differenza per un iteratore
+         *
+         * @param i è il decremento dell'indice
+         * @return const_iterator& è il riferimento all'elemento in i posizioni precedenti
+         */
         const_iterator &operator-(uint i)
         {
             while (i > 0)
@@ -175,19 +223,12 @@ public:
 
     /**
      * @brief Costruttore vuoto
-     * Il nodo non punta a genitori o figli e la sua condizione di essere un nodo vuoto è espressa dall'inizializzazione di empty a true.
-     * Inoltre anche se ovviamente il membro key presenta un certo valore, questo non viene reso disponibile dalla funzione getKey()
-     * e quindi di fatto il nodo è come se non avesso una chiave.
      *
+     * Il nodo non punta a genitori o figli e la sua condizione di essere un nodo vuoto è espressa dall'inizializzazione di empty a true.
+     * Ovviamente il membro key presenta un certo valore, ma questo non viene reso disponibile dalla funzione getKey()
+     * e quindi di fatto il nodo è come se il nodo non avesse una chiave.
      */
     bst() : parent{nullptr}, left{nullptr}, right{nullptr}, empty{true} {}
-
-    /**
-     * @brief Costruttore con passaggio dei parametri per valore
-     *
-     * @param inputKey è la copia del valore del nodo
-     */
-    bst(const T &&inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
 
     /**
      * @brief Costruttore con passaggio dei parametri per riferimento
@@ -197,10 +238,20 @@ public:
     bst(const T &inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
 
     /**
+     * @brief Costruttore con passaggio dei parametri per valore
+     *
+     * @param inputKey è la copia del valore del nodo
+     */
+    bst(const T &&inputKey) : key{inputKey}, parent{nullptr}, left{nullptr}, right{nullptr}, empty{false} {}
+
+    /**
      * @brief Costruttore per convertire un array in un albero binario di ricerca
      *
+     * Gli elementi vengono inseriti in ordine dall'elemento in posizione zero dell'array, quindi è preferibile un array
+     * di input non ordinato in modo da non ottenere un albero completamente sbilanciato.
+     *
      * @param array che si vuole convertire nell'albero binario di ricerca
-     * @param length è la lunghezza dell'array (lvalue)
+     * @param length è il riferimento alla lunghezza dell'array
      */
     bst(const T array[], uint &length) : bst<T, CMP>()
     {
@@ -212,6 +263,9 @@ public:
 
     /**
      * @brief Costruttore per convertire un array in un albero binario di ricerca
+     *
+     * Gli elementi vengono inseriti in ordine dall'elemento in posizione zero dell'array, quindi è preferibile un array
+     * di input non ordinato in modo da non ottenere un albero completamente sbilanciato.
      *
      * @param array che si vuole convertire nell'albero binario di ricerca
      * @param length è la lunghezza dell'array (rvalue)
@@ -226,7 +280,7 @@ public:
 
     /**
      * @brief Costruttore di copia
-     * Viene costruito un albero uguale all'albero orig
+     * Viene costruito un albero uguale all'albero puntato da orig
      *
      * @param orig è il nodo radice dell'albero che si vuole copiare
      */
@@ -257,13 +311,13 @@ public:
     }
 
     /**
-     * @brief Restituisce il valore della radice
+     * @brief Restituisce il valore della chiave del nodo
      *
-     * @return valore della radice
+     * @return const T& è il valore della chiave del nodo
      */
     inline const T &getKey() const
     {
-        if (isEmpty())
+        if (isEmpty()) // Se è vuoto sicuramente non è presente il valore cercato
         {
             throw NonExistingValueException();
         }
@@ -273,7 +327,7 @@ public:
     /**
      * @brief Restituisce un puntatore al genitore
      *
-     * @return puntatore al genitore
+     * @return puntatore al nodo genitore
      */
     inline bst<T, CMP> *const getParent() const
     {
@@ -283,7 +337,7 @@ public:
     /**
      * @brief Restituisce un puntatore al sottoalbero sinistro
      *
-     * @return puntatore al sottoalbero sinistro
+     * @return puntatore al nodo figlio sinistro
      */
     inline bst<T, CMP> *const getLeft() const
     {
@@ -293,7 +347,7 @@ public:
     /**
      * @brief Restituisce un puntatore al sottoalbero destro
      *
-     * @return puntatore al sottoalbero destro
+     * @return puntatore al nodo figlio destro
      */
     inline bst<T, CMP> *const getRight() const
     {
@@ -305,7 +359,8 @@ public:
      * Un albero è vuoto se il puntatore a tale albero è un nullptr ovvero che non punta
      * a nulla oppure se punta a un nodo con attributo empty = true
      *
-     * @return condizione di verità per l'albero vuoto
+     * @return true se l'albero è vuoto
+     * @return false se l'albero ha almeno un nodo
      */
     bool isEmpty() const
     {
@@ -321,7 +376,7 @@ public:
      *
      * @return puntatore al nodo con valore minimo
      */
-    bst<T, CMP> *min()
+    bst<T, CMP> *const min()
     {
         if (left == nullptr) // Se siamo alla fine del ramo sinistro (dove ci sono i numeri minori per definizione di bst)
         {
@@ -338,7 +393,7 @@ public:
      *
      * @return puntatore al nodo con valore massimo
      */
-    bst<T, CMP> *max()
+    bst<T, CMP> *const max()
     {
         if (right == nullptr) // Se siamo alla fine del ramo destro (dove ci sono i numeri maggiori per definizione di bst)
         {
@@ -407,12 +462,12 @@ public:
     }
 
     /**
-     * @brief  Restituisce il puntatore al successore del nodo
+     * @brief Restituisce il puntatore al successore del nodo
      * Il successore di un nodo A è il nodo con la chiave più piccola maggiore di quella di A
      *
      * @return puntatore al nodo successore
      */
-    bst<T, CMP> *successor()
+    bst<T, CMP> *const successor()
     {
         if (right != nullptr)
         {
@@ -429,12 +484,12 @@ public:
     }
 
     /**
-     * @brief  Restituisce il puntatore al predecessore del nodo
+     * @brief Restituisce il puntatore al predecessore del nodo
      * Il predecessore di un nodo A è il nodo con la chiave più grande minore di quella di A
      *
      * @return puntatore al nodo successore
      */
-    bst<T, CMP> *predecessor()
+    bst<T, CMP> *const predecessor()
     {
         if (left != nullptr)
         {
@@ -453,7 +508,7 @@ public:
     /**
      * @brief Contatore dei nodi dell'albero
      *
-     * @return resituisce un unsigned int con il valore della quantità di nodi dell'albero
+     * @return restituisce un naturale che esprime il numero di nodi dell'albero
      */
     u_int nodesCount() const
     {
@@ -470,7 +525,7 @@ public:
     /**
      * @brief Contatore delle foglie dell'albero
      *
-     * @return resituisce un unsigned int con il valore della quantità di foglie dell'albero
+     * @return resituisce un naturale che esprime il numero di foglie dell'albero
      */
     u_int leavesCount() const
     {
@@ -493,16 +548,16 @@ public:
 
     /**
      * @brief Ricerca di un valore nell'albero binario
-     * Fornita una chiave viene fornito il puntatore al nodo che ha come attributo key tale chiave.
-     * La ricerca è veloce perché è dicotomica, perché in base alla chiave che si sta cercando sappiamo
-     * se cercarla nel sottoalbero sinistro o destro, escludendo quindi ogni volta metà albero
-     * (non metà chiavi perché non è detto che l'albero sia completo)
      *
-     * Note: se la chiave non è presente nell'albero viene lanciato un'eccezione
+     * Fornita una chiave viene fornito il puntatore al nodo che ha come valore dell' attributo key tale chiave.
+     * La ricerca è veloce perché è dicotomica, ovvero in base alla chiave che si sta cercando sappiamo
+     * se si trova nel sottoalbero sinistro o destro, escludendo quindi ogni volta un ramo dell'albero
+     * (non metà chiavi perché non è detto che l'albero sia completo). @n
+     * Note: se la chiave non è presente nell'albero viene lanciata un'eccezione.
      *
      * @return puntatore al nodo che presenta la chiave desiderata
      */
-    bst<T, CMP> *binarySearch(const T value)
+    bst<T, CMP> *const binarySearch(const T value)
     {
         if (isEmpty()) // Se l'albero/sottoalbero è vuoto
         {
@@ -510,17 +565,17 @@ public:
         }
         else
         {
-            if (value == key)
+            if (value == key) // Nodo trovato
             {
                 return this;
             }
             else
             {
-                if (cmp(value, key)) // In un BST i valori maggiori di un nodo si trovano a sinistra
+                if (cmp(value, key)) // In un BST i nodi con valori maggiori si trovano a destra
                 {
                     return (right->binarySearch(value));
                 }
-                else // In un BST i valori minori (o uguali) di un nodo si trovano a destra
+                else // In un BST i nodi con valori minori (o uguali) di un nodo si trovano a sinistra
                 {
                     return (left->binarySearch(value));
                 }
@@ -529,9 +584,10 @@ public:
     }
 
     /**
-     * @brief Metodo che informa se una certa chiave è presente o meno nell'albero
+     * @brief Metodo che informa se è presente nell'albero un nodo (almeno uno) con un determinato valore della chiave
      *
-     * @return valore di verità per la presenza della chiave nell'albero
+     * @return true se il nodo è presente nell'albero
+     * @return false se il nodo non è presente nell'albero
      */
     bool isPresent(const T value) const
     {
@@ -547,7 +603,9 @@ public:
 
     /**
      * @brief Metodo per l'eliminazione di un albero/sottoalbero
-     * Viene eliminato dal nodo genitore del nodo su cui è chiamato al metodo il puntatore a tale nodo
+     *
+     * Il genitore del nodo su cui è chiamato il metodo non lo considera più suo figlio (diventa nullptr)
+     * e si libera la memoria occupata dal nodo
      */
     void remove()
     {
@@ -566,52 +624,53 @@ public:
     }
 
     /**
-     * @brief Eliminazione di un nodo dall'albero mediante chiave del nodo da eliminare
-     * Il metodo calcola il puntatore del nodo corrispondente alla chiave fornita e utilizza una funzione ausiliaria
-     * per eliminare il nodo che prende in input il puntatore del nodo da eliminare
+     * @brief Eliminazione del nodo associato a una determinata chiave dall'albero
      *
-     * @param key  chiave corrispondente al nodo da eliminare
+     * Il metodo calcola il puntatore del nodo corrispondente alla chiave fornita e utilizza una funzione ausiliaria
+     * per eliminare il nodo che prende in input il puntatore di tale nodo
+     *
+     * @param key chiave corrispondente al nodo da eliminare
      */
     void deleteKey(T key)
     {
-        deleteKey(binarySearch(key)); // viene chiamata una funzione ausiliare che eliminerà effettivamente il nodo corrispondente alla chiave fornita
+        deleteKey(binarySearch(key)); // viene chiamata una funzione ausiliaria che eliminerà effettivamente il nodo corrispondente alla chiave fornita
     }
 
     /**
-     * @brief Metodo per ottenere l'altezza della classe
+     * @brief Metodo per ottenere l'altezza dell'albero
      *
-     * @return intero senza segno che rappresenta l'altezza
+     * @return naturale che rappresenta il numero di livelli dell'albero (altezza)
      */
-    uint getHeight() const
+    uint height() const
     {
         if (isEmpty()) // Caso base: non ci sono più nodi
         {
             return 0;
         }
-        uint hl{left->getHeight()};     // Calcoliamo l'altezza del ramo di sinistra
-        uint hr{right->getHeight()};    // Calcoliamo l'altezza del ramo di destra
+        uint hl{left->height()};        // Calcoliamo l'altezza del ramo di sinistra
+        uint hr{right->height()};       // Calcoliamo l'altezza del ramo di destra
         return 1 + (hl < hr ? hr : hl); // E confrontiamoli prendendo il maggiore e sommandoci 1 per il nodo corrente
     }
 
     /**
      * @brief Metodo per rappresentare un albero sotto forma di matrice
-     * Si calcola la posizione del nodo radice all'interno della matrice e poi si richiama il metodo
-     * sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
      *
-     * @param matrix riferimento a matrice in cui fornire il risultato
-     * @param level livello dell'albero (da 0 fino all'altezza dell'albero)
+     * Si calcola la posizione del nodo radice all'interno della matrice (centrato rispetto alle colonne e sulla prima riga)
+     * e successivamente si richiama il metodo sul nodo sinistro e destro in modo ricorsivo per posizionare i nodi figli
+     *
+     * @param matrix riferimento alla matrice in cui vogliamo salvare l'albero
+     * @param level livello dell'albero
      * @param offset offset da sinistra per posizionare il nodo nella matrice
-     * @param width larghezza (in colonne) dell'albero nella matrice
+     * @param width larghezza (in colonne) dell'albero/sottoalbero nella matrice
      */
     void fillMatrix(std::vector<std::vector<std::string>> &matrix, uint level, uint offset, uint width) const
     {
-        if (isEmpty())
+        if (!isEmpty())
         {
-            return;
+            matrix[level][(offset + width) / 2] = to_string_adl(key);              // Inserisco il nodo radice
+            left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
+            right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
         }
-        matrix[level][(offset + width) / 2] = to_string_adl(key);              // Inserisco il nodo radice
-        left->fillMatrix(matrix, level + 1, offset, (offset + width) / 2);     // Riempio la matrice con il sottoalbero sinistro
-        right->fillMatrix(matrix, level + 1, (offset + width + 1) / 2, width); // Riempio la matrice con il sottoalbero destro
     }
 
     /**
@@ -799,7 +858,7 @@ std::ostream &operator<<(std::ostream &os, const bst<T, CMP> &tree)
     {
         std::cout << "Albero vuoto" << std::endl;
     }
-    uint h{tree.getHeight()};                                                              // altezza dell'albero
+    uint h{tree.height()};                                                                 // altezza dell'albero
     uint leaves{(uint)((1 << h) - 1)};                                                     // numero massimo di nodi dell'ultimo livello. Viene calcolato come 2^h - 1
     std::vector<std::vector<std::string>> matrix(h, std::vector<std::string>(leaves, "")); // creo una matrice [h x leaves]
     tree.fillMatrix(matrix, 0, 0, leaves);

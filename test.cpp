@@ -15,18 +15,18 @@ void testBST_Iterator();
  */
 int main()
 {
-    // testBST_1();
-    // testBST_City();
+    testBST_1();
+    testBST_City();
     try
     {
-        // testBST_2();
+        testBST_2();
     }
     catch (const NonExistingValueException &e) // Gestione dell'eccezione
     {
         std::cerr << "e.what() :  " << e.what() << std::endl;
         std::cerr << "e.getInfo() :  " << e.getInfo() << std::endl;
     }
-    // testBST_Iterator();
+    testBST_Iterator();
 
     return 0;
 }
@@ -41,11 +41,18 @@ void testBST_1()
     {
         binSearchTree.insertValue(intArray[i]);
     }
-    std::cout << "Inorder: " << std::endl;
+
+    std::cout << "Nodi totali: " << binSearchTree.nodesCount() << std::endl;
+    std::cout << "Nodi foglia: " << binSearchTree.leavesCount() << std::endl;
+    std::cout << "Altezza albero: " << binSearchTree.height() << std::endl;
+
+    std::cout << binSearchTree << std::endl;
+
+    std::cout << "Inorder visit: " << std::endl;
     binSearchTree.inorder();
-    std::cout << "\nPreorder: " << std::endl;
+    std::cout << "\nPreorder visit: " << std::endl;
     binSearchTree.preorder();
-    std::cout << "\nPostorder: " << std::endl;
+    std::cout << "\nPostorder visit: " << std::endl;
     binSearchTree.postorder();
     std::cout << "\n";
     std::cout << std::endl;
