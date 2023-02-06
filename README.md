@@ -68,7 +68,7 @@ Classe che implementa l'eccezione di valore non trovato in un albero.
 Classe che implementa la rappresentazione di una città.
 
 ## Note
-È disponibile la documentazione realizzata con il tool [Doxygen](https://www.doxygen.nl/), scaricando l'archivio compresso "html".@n
+È disponibile la documentazione realizzata con il tool [Doxygen](https://www.doxygen.nl/), scaricando l'archivio compresso "html".\
 È stato anche utilizzato il framework [Valgrind](https://valgrind.org/) per l’analisi della gestione della memoria dinamica con il risultato che non sono stati generati memory leak o errori di accesso alla memoria.
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=giacomo-gobbo&label=Visite&color=ed3535&style=flat" alt="giacomo-gobbo" /> </p>
