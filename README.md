@@ -66,6 +66,8 @@ Iteratore costante per gli alberi binari di ricerca.
 Classe che implementa l'eccezione di valore non trovato in un albero.
 ### City.hpp
 Classe che implementa la rappresentazione di una città.
+### accessory.hpp
+Contiene funzioni utilizzate dalla classe bst, ma non specifiche degli alberi binari di ricerca
 
 ## Note
 È disponibile la documentazione realizzata con il tool [Doxygen](https://www.doxygen.nl/), scaricando l'archivio compresso *html*. Aprire poi il file *index.html* contenuto nella directory principale.\
